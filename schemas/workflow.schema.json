@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://approvallab.example/schemas/workflow-v1.json",
+  "title": "ApprovalLab Property Workflow",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "assetType",
+    "owner",
+    "stages",
+    "viewers",
+    "conditions",
+    "notes",
+    "assumptions",
+    "unresolvedQuestions",
+    "conversation",
+    "status",
+    "version",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "assetType": { "type": "string", "minLength": 1 },
+    "owner": { "type": "string", "minLength": 1 },
+    "intakeTimeLimit": { "$ref": "#/$defs/timeLimit" },
+    "finalDecisionTimeLimit": { "$ref": "#/$defs/timeLimit" },
+    "totalTimeLimit": { "$ref": "#/$defs/timeLimit" },
+    "stages": { "type": "array", "items": { "$ref": "#/$defs/stage" } },
+    "viewers": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "conditions": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
+    "notes": { "type": "array", "items": { "type": "string" } },
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "unresolvedQuestions": { "type": "array", "items": { "type": "string" } },
+    "conversation": { "type": "array", "items": { "$ref": "#/$defs/message" } },
+    "status": { "enum": ["draft", "needs_clarification", "ready_for_review", "confirmed"] },
+    "version": { "type": "integer", "minimum": 1 },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "confirmedAt": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "timeLimit": {
+      "type": "object",
+      "required": ["amount", "unit"],
+      "properties": {
+        "amount": { "type": "number", "exclusiveMinimum": 0 },
+        "unit": { "enum": ["hours", "business-days"] }
+      },
+      "additionalProperties": false
+    },
+    "participant": {
+      "type": "object",
+      "required": ["role", "participation"],
+      "properties": {
+        "role": { "type": "string", "minLength": 1 },
+        "participation": { "enum": ["approver", "consultative", "viewer"] },
+        "organizationType": { "enum": ["Property", "outside organization", "custom"] },
+        "notes": { "type": "string" },
+        "sourceEvidence": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "approvalRule": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["type", "rules"],
+          "properties": {
+            "type": { "enum": ["all", "any"] },
+            "rules": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/approvalRule" } }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["type", "n", "m"],
+          "properties": {
+            "type": { "const": "n_of_m" },
+            "n": { "type": "integer", "minimum": 1 },
+            "m": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["type", "role"],
+          "properties": {
+            "type": { "const": "role" },
+            "role": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "stage": {
+      "type": "object",
+      "required": ["id", "position", "name", "participants", "approvalRule"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "position": { "type": "integer", "minimum": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "timeLimit": { "$ref": "#/$defs/timeLimit" },
+        "participants": { "type": "array", "items": { "$ref": "#/$defs/participant" } },
+        "approvalRule": { "$ref": "#/$defs/approvalRule" },
+        "appliesWhen": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      },
+      "additionalProperties": false
+    },
+    "condition": {
+      "type": "object",
+      "required": ["id", "condition", "effect", "role", "participation", "stageId"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "condition": { "type": "string", "minLength": 1 },
+        "effect": { "enum": ["add-participant", "change-participation"] },
+        "role": { "type": "string", "minLength": 1 },
+        "participation": { "enum": ["approver", "consultative", "viewer"] },
+        "stageId": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "message": {
+      "type": "object",
+      "required": ["role", "content", "createdAt"],
+      "properties": {
+        "role": { "enum": ["user", "assistant"] },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

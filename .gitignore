@@ -1,0 +1,14 @@
+node_modules/
+.venv/
+dist/
+*.tsbuildinfo
+.vite/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*.egg-info/
+backend/*.db
+.env*
+!.env.example
+.DS_Store
+*:Zone.Identifier

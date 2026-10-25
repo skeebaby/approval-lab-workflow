@@ -1,0 +1,41 @@
+{
+  "id": "example-social-digital",
+  "name": "Harborview Hawks — Social & digital",
+  "assetType": "Social & Digital",
+  "owner": "Partnership Lead",
+  "intakeTimeLimit": { "amount": 4, "unit": "hours" },
+  "stages": [
+    {
+      "id": "social-approval",
+      "position": 1,
+      "name": "Social approval",
+      "timeLimit": { "amount": 1, "unit": "business-days" },
+      "participants": [
+        { "role": "Social/Digital", "participation": "approver", "organizationType": "Property" },
+        { "role": "Marketing", "participation": "approver", "organizationType": "Property" }
+      ],
+      "approvalRule": {
+        "type": "any",
+        "rules": [
+          { "type": "role", "role": "Social/Digital" },
+          { "type": "role", "role": "Marketing" }
+        ]
+      }
+    }
+  ],
+  "finalDecisionTimeLimit": { "amount": 4, "unit": "hours" },
+  "totalTimeLimit": { "amount": 3, "unit": "business-days" },
+  "viewers": ["Partnership Services"],
+  "conditions": [],
+  "notes": [],
+  "assumptions": [
+    "A one-business-day review stage is used as a disclosed default; adjust it if needed.",
+    "The owner’s four-hour intake check does not require a separate review stage."
+  ],
+  "unresolvedQuestions": [],
+  "conversation": [],
+  "status": "ready_for_review",
+  "version": 1,
+  "createdAt": "2026-01-01T00:00:00Z",
+  "updatedAt": "2026-01-01T00:00:00Z"
+}

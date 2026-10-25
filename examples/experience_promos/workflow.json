@@ -1,0 +1,115 @@
+{
+  "id": "example-experience-promos",
+  "name": "Harborview Hawks — Activations & promotions",
+  "assetType": "Experience & Promos",
+  "owner": "Partnership Lead",
+  "intakeTimeLimit": { "amount": 1, "unit": "business-days" },
+  "stages": [
+    {
+      "id": "activation-review",
+      "position": 1,
+      "name": "Activation review",
+      "timeLimit": { "amount": 2, "unit": "business-days" },
+      "participants": [
+        { "role": "Activation", "participation": "approver", "organizationType": "Property" },
+        { "role": "Game-Day Operations", "participation": "approver", "organizationType": "Property" },
+        { "role": "Venue Operations", "participation": "consultative", "organizationType": "Property" }
+      ],
+      "approvalRule": {
+        "type": "all",
+        "rules": [
+          { "type": "role", "role": "Activation" },
+          { "type": "role", "role": "Game-Day Operations" }
+        ]
+      }
+    },
+    {
+      "id": "legal-review",
+      "position": 2,
+      "name": "Legal review",
+      "timeLimit": { "amount": 2, "unit": "business-days" },
+      "participants": [
+        { "role": "Legal", "participation": "approver", "organizationType": "Property" },
+        { "role": "Player Personnel", "participation": "consultative", "organizationType": "Property" }
+      ],
+      "approvalRule": { "type": "role", "role": "Legal" }
+    },
+    {
+      "id": "external-approvals",
+      "position": 3,
+      "name": "Conditional external approvals",
+      "timeLimit": { "amount": 4, "unit": "business-days" },
+      "participants": [],
+      "approvalRule": {
+        "type": "all",
+        "rules": [
+          { "type": "role", "role": "Player Agent" },
+          { "type": "role", "role": "Venue Owner" },
+          { "type": "role", "role": "League Office" }
+        ]
+      },
+      "appliesWhen": [
+        "Uses a player’s likeness",
+        "Involves the venue or game day",
+        "Uses league marks"
+      ]
+    }
+  ],
+  "finalDecisionTimeLimit": { "amount": 4, "unit": "hours" },
+  "totalTimeLimit": { "amount": 12, "unit": "business-days" },
+  "viewers": ["Marketing", "Sales"],
+  "conditions": [
+    {
+      "id": "condition-player-personnel",
+      "condition": "Uses a player’s likeness",
+      "effect": "change-participation",
+      "role": "Player Personnel",
+      "participation": "approver",
+      "stageId": "legal-review"
+    },
+    {
+      "id": "condition-outside-counsel",
+      "condition": "Includes legal, contest or sweepstakes language",
+      "effect": "add-participant",
+      "role": "Outside Counsel",
+      "participation": "consultative",
+      "stageId": "legal-review"
+    },
+    {
+      "id": "condition-player-agent",
+      "condition": "Uses a player’s likeness",
+      "effect": "add-participant",
+      "role": "Player Agent",
+      "participation": "approver",
+      "stageId": "external-approvals"
+    },
+    {
+      "id": "condition-venue-owner",
+      "condition": "Involves the venue or game day",
+      "effect": "add-participant",
+      "role": "Venue Owner",
+      "participation": "approver",
+      "stageId": "external-approvals"
+    },
+    {
+      "id": "condition-league-office",
+      "condition": "Uses league marks",
+      "effect": "add-participant",
+      "role": "League Office",
+      "participation": "approver",
+      "stageId": "external-approvals"
+    }
+  ],
+  "notes": [],
+  "assumptions": [
+    "Activation review and legal review are sequential.",
+    "Outside approvals run in parallel and share a four-business-day limit.",
+    "Activation and legal review use two-business-day limits as disclosed defaults."
+  ],
+  "unresolvedQuestions": [],
+  "conversation": [],
+  "status": "ready_for_review",
+  "version": 1,
+  "createdAt": "2026-01-01T00:00:00Z",
+  "updatedAt": "2026-01-01T00:00:00Z"
+}
