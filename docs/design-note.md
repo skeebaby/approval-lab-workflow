@@ -12,9 +12,9 @@ SQLite stores one canonical workflow JSON document per row, together with status
 
 ## Extraction and clarification policy
 
-Extraction is deterministic, runs behind the backend adapter, and requires no API key. It recognizes common phrases for registered asset categories, roles, time limits, approval requirements, and a limited set of conditional reviewers. It merges clear facts from later messages without discarding unrelated fields. Ambiguous approval rules and conflicting time limits are kept as clarification questions. Users may choose the previous or new rule/limit in a follow-up, or edit the structured workflow directly.
+Rule-based extraction is the default and requires no API key. An optional structured LLM path can be enabled with `APPROVALLAB_LLM_BASE_URL` and `APPROVALLAB_LLM_MODEL` for an OpenAI-compatible chat-completions provider. `APPROVALLAB_LLM_API_KEY` is optional for providers that require authentication; the timeout is configurable with `APPROVALLAB_LLM_TIMEOUT`. When enabled, the current workflow and message are sent to that provider. The returned complete workflow is parsed into the canonical Pydantic model, while server-owned identity, conversation, and revision fields are retained. Confirmation and export continue to run deterministic domain validation, and provider or response-format errors are surfaced to the caller.
 
-This adapter is not a general-purpose language model. Unsupported phrasing may not be recognized and must be checked by the user. No field-accuracy claims are made. A live structured-output LLM adapter and recorded extraction fixtures remain future work.
+The LLM path can represent complex approval rules and multi-stage workflows, but its output still needs user review; no field-accuracy claims are made. Rule-based parsing remains available by leaving the optional provider settings unset. Recorded LLM extraction fixtures remain future work.
 
 ## Challenge defaults
 

@@ -11,6 +11,7 @@ from app.domain.workflow_factory import new_workflow
 from app.exporters.json_export import workflow_json
 from app.exporters.pdf_export import export_pdf
 from app.extraction.adapter import process_message
+from app.extraction.llm_parser import LLMExtractionError
 from app.models.workflow import MessageRequest, Workflow, WorkflowPatch, utc_now
 from app.persistence import repository
 
@@ -68,6 +69,8 @@ def add_message(workflow_id: str, request: MessageRequest):
         updated = process_message(_load(workflow_id), request.content)
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
+    except LLMExtractionError as error:
+        raise HTTPException(status_code=502, detail=str(error)) from error
     repository.save(updated)
     return _workflow_response(updated)
 

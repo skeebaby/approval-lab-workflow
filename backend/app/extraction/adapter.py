@@ -15,6 +15,7 @@ from app.models.workflow import (
 )
 from app.domain.registry import ASSET_TYPES, CONDITIONS, ROLES
 from app.domain.clarification import clarification_status
+from app.extraction.llm_parser import llm_parsing_enabled, process_message_with_llm
 NUMBER_WORDS = {
     "one": 1,
     "two": 2,
@@ -95,6 +96,8 @@ def process_message(workflow: Workflow, content: str) -> Workflow:
     message = content.strip()
     if not message:
         raise ValueError("Message content cannot be empty.")
+    if llm_parsing_enabled():
+        return process_message_with_llm(workflow, message)
     now = utc_now()
     candidate = workflow.model_copy(deep=True)
     candidate.conversation.append(ConversationMessage(role="user", content=message, created_at=now))

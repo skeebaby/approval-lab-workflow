@@ -7,8 +7,9 @@ from fastapi.testclient import TestClient
 from app.domain.validation import validate_workflow
 from app.domain.conditions import apply_conditions
 from app.extraction.adapter import process_message
+from app.extraction import llm_parser
 from app.main import app
-from app.models.workflow import Workflow, WorkflowCondition
+from app.models.workflow import GroupRule, RoleRule, Workflow, WorkflowCondition
 from app.persistence import repository
 
 
@@ -150,6 +151,81 @@ def test_conflicting_time_limit_is_retained_until_resolved():
     workflow = process_message(workflow, "Use the new value.")
     assert workflow.intake_time_limit.amount == 8
     assert workflow.unresolved_questions == []
+
+
+def test_llm_parser_applies_complex_rules_and_preserves_server_fields(monkeypatch):
+    workflow = load_example("social_digital")
+    response_workflow = workflow.model_dump(mode="json", by_alias=True)
+    response_workflow["stages"][0]["approvalRule"] = {
+        "type": "all",
+        "rules": [
+            {"type": "role", "role": "Legal"},
+            {
+                "type": "any",
+                "rules": [
+                    {"type": "role", "role": "Marketing"},
+                    {"type": "role", "role": "Activation"},
+                ],
+            },
+        ],
+    }
+    response_body = json.dumps({
+        "choices": [{
+            "message": {
+                "content": json.dumps({
+                    "workflow": response_workflow,
+                    "assistant_message": "Added the combined approval rule.",
+                })
+            }
+        }]
+    }).encode()
+
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            return None
+
+        def read(self):
+            return response_body
+
+    def fake_urlopen(request, timeout):
+        assert request.full_url == "https://llm.example/v1/chat/completions"
+        assert request.get_header("Authorization") == "Bearer test-key"
+        assert timeout == 45
+        assert json.loads(request.data)["response_format"] == {"type": "json_object"}
+        return FakeResponse()
+
+    monkeypatch.setenv("APPROVALLAB_LLM_BASE_URL", "https://llm.example/v1/")
+    monkeypatch.setenv("APPROVALLAB_LLM_API_KEY", "test-key")
+    monkeypatch.setenv("APPROVALLAB_LLM_MODEL", "test-model")
+    monkeypatch.setattr(llm_parser, "urlopen", fake_urlopen)
+
+    updated = process_message(workflow, "Legal must approve, plus either Marketing or Activation.")
+
+    assert isinstance(updated.stages[0].approval_rule, GroupRule)
+    assert updated.stages[0].approval_rule.rules[0] == RoleRule(type="role", role="Legal")
+    assert updated.stages[0].approval_rule.rules[1].type == "any"
+    assert updated.id == workflow.id
+    assert updated.version == workflow.version
+    assert updated.conversation[-2].content == "Legal must approve, plus either Marketing or Activation."
+    assert updated.conversation[-1].content == "Added the combined approval rule."
+
+
+def test_llm_parser_configuration_errors_are_reported_by_api(client, monkeypatch):
+    workflow = client.post("/api/workflows").json()
+    monkeypatch.setenv("APPROVALLAB_LLM_BASE_URL", "https://llm.example/v1")
+    monkeypatch.delenv("APPROVALLAB_LLM_API_KEY", raising=False)
+    monkeypatch.delenv("APPROVALLAB_LLM_MODEL", raising=False)
+
+    response = client.post(
+        f"/api/workflows/{workflow['id']}/messages",
+        json={"content": "Legal has to approve the proposal."},
+    )
+
+    assert response.status_code == 502
+    assert "requires APPROVALLAB_LLM_BASE_URL" in response.json()["detail"]
 
 
 def test_api_requires_confirmation_and_exports_a_confirmed_snapshot(client):

@@ -62,7 +62,9 @@ docs/
 
 Drafts and conversation messages are persisted in SQLite and listed in the left panel, where workflows can be reopened across draft, ready-for-review, and confirmed states. Explicit confirmation records a timestamp on a workflow version; confirmed workflows remain editable, and edits invalidate the confirmation and increment the revision. JSON and PDF endpoints only export the confirmed, validated version. The JSON shape is described by [`schemas/workflow.schema.json`](./schemas/workflow.schema.json).
 
-Extraction is deterministic and local to the backend; it is not a provider-backed LLM. Unknown asset types, roles, and conditions are preserved as custom values and can be edited in the workflow review UI. Clarifications are required for ambiguous approval rules and conflicting time limits. Unsupported phrasing should be corrected in the editor before confirmation.
+Message extraction uses the deterministic local parser by default. To enable structured LLM parsing, configure `APPROVALLAB_LLM_BASE_URL` and `APPROVALLAB_LLM_MODEL` in the backend environment. `APPROVALLAB_LLM_API_KEY` is optional for providers that do not require authentication; `APPROVALLAB_LLM_TIMEOUT` defaults to 45 seconds. The endpoint must provide an OpenAI-compatible chat-completions API with JSON response mode. When enabled, the current workflow and new message are sent to the configured provider; provider errors are reported rather than silently falling back. Without these settings, no model provider is contacted.
+
+LLM responses are validated against the canonical workflow model, and deterministic workflow validation still gates confirmation and export. Unknown asset types, roles, and conditions can be reviewed in the workflow editor. Clarifications remain necessary for ambiguous or conflicting requirements.
 
 ## Tests
 
